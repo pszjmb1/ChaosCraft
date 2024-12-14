@@ -1,96 +1,212 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# ChaosCraft: Distributed Game of Life Evolution
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+A real-time collaborative Conway's Game of Life implementation showcasing Supabase Launch Week 13's groundbreaking features. ChaosCraft demonstrates the convergence of edge computing, real-time collaboration, and scheduled automation in a visually engaging experience.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+![Game Board Example](/public/opengraph-image.png)
 
-## Features
+## 🏆 Hackathon Implementation Highlights
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### Innovative Feature Integration
+- **Edge Functions with WebSocket**: Real-time board state synchronization and cursor tracking
+- **Background Tasks**: Pattern analysis and evolution tracking running asynchronously
+- **Supabase Cron**: Scheduled chaos events that inject entropy into evolving patterns
+- **database.build and Bolt.new generation**: AI-assisted schema and application design and evolution
 
-## Demo
+### Development Approach
+1. **Schema Design** ([database.build/db/06uxcld4q4k5oqql](https://database.build/db/06uxcld4q4k5oqql))
+   - Leveraged AI assistance for optimal table structure
+   - Implemented advanced PostgreSQL features     ```
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+2. **Application Development**
+   - Primary Board Logic: [bolt.new/~/sb1-gjzhdix3](https://bolt.new/~/sb1-gjzhdix3)
+     - WebSocket integration for real-time updates
+     - Edge function implementation
+   - Event System: [bolt.new/~/sb1-mmhnnpwx](https://bolt.new/~/sb1-mmhnnpwx)
+     - Chaos event scheduling
+     - Background task management
 
-## Deploy to Vercel
+## Core Features
 
-Vercel deployment will guide you through creating a Supabase account and project.
+- **Real-time Collaboration**
+  - Shared game boards with live updates
+  - Multi-user cursor tracking
+  - Pattern synchronisation across clients
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+- **Pattern Evolution**
+  - AI-driven pattern analysis
+  - Historical pattern tracking
+  - Performance metrics collection
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+- **Chaos Events**
+  - Scheduled environmental changes
+  - Random pattern injections
+  - Dynamic rule modifications
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+## Technical Stack
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+- **Frontend**
+  - Next.js 14 (App Router)
+  - TypeScript
+  - TailwindCSS
+  - Shadcn/UI
 
-## Clone and run locally
+- **Backend**
+  - Supabase (PostgreSQL)
+  - Edge Functions
+  - Real-time subscriptions
+  - Row Level Security
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+## Getting Started
 
-2. Create a Next.js app using the Supabase Starter template npx command
+### Prerequisites
 
+- Node.js 18.17 or later
+- npm or pnpm
+- Docker (for local Supabase development)
+- Git
+
+### Local Development Setup
+
+1. Clone the repository:
    ```bash
-   npx create-next-app -e with-supabase
+   git clone https://github.com/yourusername/chaoscraft.git
+   cd chaoscraft
    ```
 
-3. Use `cd` to change into the app's directory
-
+2. Install dependencies:
    ```bash
-   cd name-of-new-app
+   npm install
    ```
 
-4. Rename `.env.example` to `.env.local` and update the following:
+3. Set up your local Supabase project:
+   - Create a new project at [database.new](https://database.new)
+   - Copy the project URL and anon key
 
+4. Configure environment variables:
+   ```bash
+   cp .env.example .env.local
    ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
+   Update `.env.local` with your Supabase credentials:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
    ```
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
+5. Run database migrations:
+   ```bash
+   npx supabase migrate up
+   ```
 
-5. You can now run the Next.js local development server:
-
+6. Start the development server:
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+Visit `http://localhost:3000` to see the application running.
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## Project Structure
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+```
+app/
+├── (auth-pages)/     # Authentication-related pages
+├── board/            # Game board routes
+│   ├── [id]/         # Individual board view
+│   └── page.tsx      # Boards listing
+├── protected/        # Protected routes
+└── layout.tsx        # Root layout
+components/
+├── client/           # Client-side components
+└── server/           # Server components
+lib/
+├── types/            # TypeScript definitions
+└── utils/            # Utility functions
+supabase/
+├── migrations/       # Database migrations
+└── seed.sql          # Seed data
+```
 
-## Feedback and issues
+## Database Schema
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+The application uses the following core tables:
 
-## More Supabase examples
+- `game_boards`: Stores board configurations and states
+- `user_participation`: Tracks user interactions with boards
+- `pattern_evolution`: Records pattern analysis and history
+- `scheduled_events`: Manages chaos events and modifications
+- `analytics`: Stores performance and engagement metrics
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+## Authentication
+
+ChaosCraft uses Supabase Auth with:
+- Email/password authentication
+- Protected routes
+- Row Level Security policies
+- Session management
+
+## Deployment
+
+### Vercel Deployment
+
+1. Push your code to GitHub
+2. Import your repository on Vercel
+3. Configure environment variables
+4. Deploy
+
+### Manual Deployment
+
+Build the application:
+```bash
+npm run build
+```
+
+Start the production server:
+```bash
+npm start
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+### Development Guidelines
+
+- Follow TypeScript best practices
+- Use React Server Components where possible
+- Implement proper error boundaries
+- Add tests for new features
+- Follow the existing code style
+
+## Testing
+
+Run the test suite:
+```bash
+npm test
+```
+
+## Security Considerations
+
+- All database access is controlled through RLS policies
+- Authentication state is managed server-side
+- Real-time subscriptions are authenticated
+- Input validation on all user data
+
+## Performance Optimisation
+
+- Server-side rendering for initial load
+- Client-side updates for interactivity
+- Optimised WebSocket connections
+- Efficient database queries
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Supabase team for real-time infrastructure
+- Next.js team for the application framework
+- Conway's Game of Life community
