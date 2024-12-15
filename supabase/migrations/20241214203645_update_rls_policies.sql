@@ -1,38 +1,68 @@
--- supabase/migrations/20241214200000_update_rls_policies.sql
+-- Enable RLS on all tables
+ALTER TABLE game_boards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_participation ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pattern_evolution ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scheduled_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE analytics ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies to recreate them
-DROP POLICY IF EXISTS "select_game_boards" ON game_boards;
-DROP POLICY IF EXISTS "insert_game_boards" ON game_boards;
+-- Grant basic access to authenticated users
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
--- Allow users to see boards they participate in or have created
+-- Game Boards Policies
 CREATE POLICY "select_game_boards" ON game_boards
     FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM user_participation
-            WHERE user_participation.board_id = id
-            AND user_participation.user_id = auth.uid()
-        )
-    );
+    USING (true);  -- All authenticated users can view boards
 
--- Allow authenticated users to create boards
 CREATE POLICY "insert_game_boards" ON game_boards
     FOR INSERT
-    WITH CHECK (auth.role() = 'authenticated');
+    WITH CHECK (auth.uid() IS NOT NULL);
 
--- Ensure user participation is created when a board is created
-CREATE OR REPLACE FUNCTION public.handle_new_board()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO user_participation (user_id, board_id)
-    VALUES (auth.uid(), NEW.id);
-    RETURN NEW;
-END;
-$$ language plpgsql security definer;
+CREATE POLICY "update_game_boards" ON game_boards
+    FOR UPDATE
+    USING (EXISTS (
+        SELECT 1 FROM user_participation
+        WHERE user_participation.board_id = id
+        AND user_participation.user_id = auth.uid()
+    ));
 
--- Create trigger for new boards
-DROP TRIGGER IF EXISTS on_board_created ON game_boards;
-CREATE TRIGGER on_board_created
-    AFTER INSERT ON game_boards
-    FOR EACH ROW
-    EXECUTE FUNCTION handle_new_board();
+-- User Participation Policies
+CREATE POLICY "select_user_participation" ON user_participation
+    FOR SELECT
+    USING (user_id = auth.uid());
+
+CREATE POLICY "insert_user_participation" ON user_participation
+    FOR INSERT
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "update_user_participation" ON user_participation
+    FOR UPDATE
+    USING (user_id = auth.uid());
+
+-- Pattern Evolution Policies
+CREATE POLICY "select_pattern_evolution" ON pattern_evolution
+    FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM user_participation
+        WHERE user_participation.board_id = pattern_evolution.board_id
+        AND user_participation.user_id = auth.uid()
+    ));
+
+-- Scheduled Events Policies
+CREATE POLICY "select_scheduled_events" ON scheduled_events
+    FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM user_participation
+        WHERE user_participation.board_id = scheduled_events.board_id
+        AND user_participation.user_id = auth.uid()
+    ));
+
+-- Analytics Policies
+CREATE POLICY "select_analytics" ON analytics
+    FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM user_participation
+        WHERE user_participation.board_id = analytics.board_id
+        AND user_participation.user_id = auth.uid()
+    ));
