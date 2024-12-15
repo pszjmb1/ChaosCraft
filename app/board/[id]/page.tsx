@@ -1,19 +1,24 @@
 // app/board/[id]/page.tsx
+import { Suspense } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { GameBoard } from '@/lib/types/game';
 import { notFound } from 'next/navigation';
 import GameBoardWrapper from '@/components/client/game-board-wrapper';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
+import { BoardSkeleton } from '@/components/board-skeleton';
 
 interface BoardPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }> | { id: string };
 }
 
-export default async function BoardPage({ params }: BoardPageProps) {
+async function BoardContent({ 
+  boardId,
+}: { 
+  boardId: string;
+}) {
   const supabase = await createClient();
-  const boardId = params.id; // Extract ID early to avoid async issues
-  
+
   // Get board data first
   const { data: board, error: boardError } = await supabase
     .from('game_boards')
@@ -31,7 +36,6 @@ export default async function BoardPage({ params }: BoardPageProps) {
   
   if (user) {
     try {
-      // Use the safe participation function
       await supabase.rpc('safe_record_participation', {
         p_board_id: boardId,
         p_session_id: crypto.randomUUID()
@@ -80,5 +84,16 @@ export default async function BoardPage({ params }: BoardPageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default async function BoardPage({ params }: BoardPageProps) {
+  // Await params here to handle async properly
+  const resolvedParams = await params;
+  
+  return (
+    <Suspense fallback={<BoardSkeleton />}>
+      <BoardContent boardId={resolvedParams.id} />
+    </Suspense>
   );
 }
