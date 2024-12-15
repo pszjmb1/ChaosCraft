@@ -1,4 +1,3 @@
-// components/client/game-board.tsx
 'use client';
 
 import React, { useCallback, useEffect, useState, useRef } from 'react';
