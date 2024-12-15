@@ -1,6 +1,6 @@
+// components/client/game-board.tsx
 'use client';
 
-// components/client/game-board.tsx
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { GameBoard as GameBoardType } from '@/lib/types/game';
@@ -21,19 +21,42 @@ export default function GameBoard({ board: initialBoard, currentUser }: GameBoar
   const [generation, setGeneration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userPresence, setUserPresence] = useState<UserPresence[]>([]);
-
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastToggled, setLastToggled] = useState<{x: number, y: number} | null>(null);
+  
   const supabase = createClient();
 
-  // Handle cell toggle
+  // Handle cell toggle with anti-bounce protection
   const toggleCell = useCallback((x: number, y: number) => {
     if (isRunning) return; // Prevent toggling while simulation is running
+    
+    // Skip if this cell was just toggled in the current drag
+    if (lastToggled?.x === x && lastToggled?.y === y) return;
     
     setBoard(currentBoard => {
       const newBoard = currentBoard.map(row => [...row]);
       newBoard[y][x] = !newBoard[y][x];
       return newBoard;
     });
-  }, [isRunning]);
+    setLastToggled({ x, y });
+  }, [isRunning, lastToggled]);
+
+  // Mouse event handlers
+  const handleMouseDown = (x: number, y: number) => {
+    if (isRunning) return;
+    setIsDragging(true);
+    toggleCell(x, y);
+  };
+
+  const handleMouseMove = (x: number, y: number) => {
+    if (!isDragging || isRunning) return;
+    toggleCell(x, y);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setLastToggled(null);
+  };
 
   // Next generation calculation
   const nextGen = useCallback(() => {
@@ -53,6 +76,12 @@ export default function GameBoard({ board: initialBoard, currentUser }: GameBoar
       if (intervalId) clearInterval(intervalId);
     };
   }, [isRunning, nextGen]);
+
+  // Global mouse up handler
+  useEffect(() => {
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, []);
 
   // Controls handlers
   const handleStart = () => setIsRunning(true);
@@ -80,7 +109,7 @@ export default function GameBoard({ board: initialBoard, currentUser }: GameBoar
       <Alert className="mb-4 w-full">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Click cells to toggle their state, then use the controls to start the simulation.
+          Click and drag to draw cells, then use the controls to start the simulation.
         </AlertDescription>
       </Alert>
 
@@ -102,7 +131,8 @@ export default function GameBoard({ board: initialBoard, currentUser }: GameBoar
                 className={`w-6 h-6 ${
                   cell ? 'bg-primary' : 'bg-background'
                 } hover:bg-accent transition-colors`}
-                onClick={() => toggleCell(x, y)}
+                onMouseDown={() => handleMouseDown(x, y)}
+                onMouseEnter={() => handleMouseMove(x, y)}
                 disabled={isRunning}
                 aria-label={`Cell ${x},${y} ${cell ? 'alive' : 'dead'}`}
               />
