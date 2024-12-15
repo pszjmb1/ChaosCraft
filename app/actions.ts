@@ -53,7 +53,8 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect("/protected");
+  // Redirect to boards page after successful login
+  return redirect("/board");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -67,8 +68,9 @@ export const forgotPasswordAction = async (formData: FormData) => {
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?redirect_to=/protected/reset-password`,
+    redirectTo: `${origin}/auth/callback?redirect_to=/(auth-pages)/reset-password`,
   });
+
 
   if (error) {
     console.error(error.message);

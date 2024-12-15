@@ -37,15 +37,25 @@ export const updateSession = async (request: NextRequest) => {
 
     // This will refresh session if expired - required for Server Components
     // https://supabase.com/docs/guides/auth/server-side/nextjs
-    const user = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    // protected routes
-    if (request.nextUrl.pathname.startsWith("/protected") && user.error) {
-      return NextResponse.redirect(new URL("/sign-in", request.url));
+    // Protect all board-related routes
+    if (request.nextUrl.pathname.includes('/board') && !user) {
+      return NextResponse.redirect(new URL('/sign-in', request.url));
     }
 
-    if (request.nextUrl.pathname === "/" && !user.error) {
-      return NextResponse.redirect(new URL("/protected", request.url));
+    // Protect everything under (protected) route group
+    if (request.nextUrl.pathname.startsWith('/(protected)') && !user) {
+      return NextResponse.redirect(new URL('/sign-in', request.url));
+    }
+
+    // Redirect authenticated users from auth pages
+    if (user && (
+      request.nextUrl.pathname === '/' ||
+      request.nextUrl.pathname === '/sign-in' ||
+      request.nextUrl.pathname === '/sign-up'
+    )) {
+      return NextResponse.redirect(new URL('/board', request.url));
     }
 
     return response;
@@ -59,4 +69,12 @@ export const updateSession = async (request: NextRequest) => {
       },
     });
   }
+};
+
+// Update matcher configuration to ensure we catch all relevant routes
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/board/:path*'  // Explicitly match all board routes
+  ]
 };
