@@ -16,7 +16,7 @@ export default function GameBoard({ rows = 30, cols = 30 }: GameBoardProps) {
   const [generation, setGeneration] = useState(0);
 
   const toggleCell = useCallback((row: number, col: number) => {
-    setGrid((currentGrid) => {
+    setGrid((currentGrid: any[]) => {
       const newGrid = currentGrid.map((rowArray) => [...rowArray]);
       newGrid[row][col] = newGrid[row][col] ? 0 : 1;
       return newGrid;
@@ -34,7 +34,7 @@ export default function GameBoard({ rows = 30, cols = 30 }: GameBoardProps) {
 
     if (isRunning) {
       intervalId = setInterval(() => {
-        setGrid((currentGrid) => nextGeneration(currentGrid));
+        setGrid((currentGrid: any) => nextGeneration(currentGrid));
         setGeneration((gen) => gen + 1);
       }, 100);
     }
@@ -69,7 +69,7 @@ export default function GameBoard({ rows = 30, cols = 30 }: GameBoardProps) {
           gridTemplateColumns: `repeat(${cols}, 1.5rem)`,
         }}
       >
-        {grid.map((row, i) =>
+        {grid.map((row: any[], i: number) =>
           row.map((cell, j) => (
             <div
               key={`${i}-${j}`}

@@ -1,87 +1,78 @@
 import { createClient } from '@/utils/supabase/server';
 import { GameBoard } from '@/lib/types/game';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { redirect } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { notFound } from 'next/navigation';
+import GameBoardWrapper from '@/components/client/game-board-wrapper';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
-export default async function BoardsPage() {
+interface BoardPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function BoardPage({ params }: BoardPageProps) {
   const supabase = await createClient();
-
-  // Check authentication first
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
   
-  if (authError || !user) {
-    redirect('/sign-in');
-  }
-
-  // Fetch boards with proper error handling
-  const { data: boards, error: fetchError } = await supabase
+  // Fetch board data with error handling
+  const { data: board, error: boardError } = await supabase
     .from('game_boards')
-    .select(`
-      id,
-      name,
-      dimensions,
-      rules,
-      created_at,
-      version
-    `)
-    .order('created_at', { ascending: false });
+    .select('*')
+    .eq('id', params.id)
+    .single();
 
-  if (fetchError) {
-    console.error('Error fetching boards:', fetchError);
-    return (
-      <div className="container mx-auto py-8">
-        <div className="text-center">
-          <p className="text-destructive">Unable to load game boards.</p>
-          <p className="text-sm text-muted-foreground mt-2">Please try again later.</p>
-        </div>
-      </div>
-    );
+  if (boardError || !board) {
+    notFound();
   }
 
-  const typedBoards = (boards || []) as GameBoard[];
+  // Create user participation record
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { error: participationError } = await supabase
+      .from('user_participation')
+      .upsert({
+        user_id: user.id,
+        board_id: params.id,
+        session_id: crypto.randomUUID()
+      }, {
+        onConflict: 'user_id, board_id'
+      });
+    
+    if (participationError) {
+      console.error('Error recording participation:', participationError);
+    }
+  }
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Game Boards</h1>
-        <Button asChild>
-          <Link href="/board/new">Create New Board</Link>
-        </Button>
-      </div>
-
-      {typedBoards.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No game boards found.</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Get started by creating your first board!
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">{board.name}</h1>
+          <p className="text-muted-foreground">
+            Dimensions: {board.dimensions} • Rules: {board.rules}
           </p>
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {typedBoards.map((board) => (
-            <Card key={board.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle>{board.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Dimensions: {board.dimensions}
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Rules: {board.rules}
-                </p>
-                <Button asChild variant="secondary" className="w-full">
-                  <Link href={`/board/${board.id}`}>
-                    Open Board
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            This is a real-time collaborative board. All changes are synced with other players.
+          </AlertDescription>
+        </Alert>
+
+        <GameBoardWrapper initialBoard={board as GameBoard} />
+
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Pattern Evolution</h2>
+            {/* Pattern evolution stats will go here */}
+          </div>
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Chaos Events</h2>
+            {/* Upcoming chaos events will go here */}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

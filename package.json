@@ -3,7 +3,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "db": "node scripts/supabase-cli.js",
+    "db:reset": "node scripts/supabase-cli.js reset",
+    "db:reset:force": "node scripts/supabase-cli.js reset --force",
+    "db:optimise": "node scripts/supabase-cli.js optimise",
+    "db:clean": "node scripts/supabase-cli.js clean"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -24,13 +29,15 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@types/node": "22.9.0",
+    "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "18.3.1",
+    "commander": "^12.1.0",
     "postcss": "8.4.49",
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "3.4.14",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "5.6.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   }
 }
