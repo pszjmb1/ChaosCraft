@@ -1,77 +1,65 @@
--- supabase/migrations/20241215071247_fix_participation_constraints.sql
+DROP POLICY IF EXISTS "Enable read access to board participants" ON user_participation;
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON user_participation;
+DROP POLICY IF EXISTS "Enable update for own records" ON user_participation;
+DROP POLICY IF EXISTS "Enable delete for own records" ON user_participation;
 
--- Drop and recreate table with proper structure
-DROP TABLE IF EXISTS user_participation CASCADE;
-
-CREATE TABLE user_participation (
-    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    board_id uuid NOT NULL REFERENCES game_boards(id) ON DELETE CASCADE,
-    cursor_position jsonb,
-    contributions jsonb,
-    session_id uuid,
-    created_at timestamptz DEFAULT now(),
-    updated_at timestamptz DEFAULT now(),
-    CONSTRAINT unique_user_board_participation UNIQUE (user_id, board_id)
+-- Read policy: Users can see their own participation and others on boards they're on
+CREATE POLICY "Enable read access to board participants"
+ON user_participation
+FOR SELECT
+USING (
+  -- Users can always see their own participation
+  auth.uid() = user_id
+  OR
+  -- Users can see others' participation if they're on the same board
+  EXISTS (
+    SELECT 1 
+    FROM game_boards gb
+    WHERE gb.id = user_participation.board_id
+    AND EXISTS (
+      SELECT 1 
+      FROM user_participation up2
+      WHERE up2.board_id = gb.id
+      AND up2.user_id = auth.uid()
+    )
+  )
 );
 
--- Add indices for performance
-CREATE INDEX idx_user_participation_user ON user_participation(user_id);
-CREATE INDEX idx_user_participation_board ON user_participation(board_id);
-
--- Add updated_at trigger
-CREATE TRIGGER update_user_participation_updated_at
-    BEFORE UPDATE ON user_participation
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Enable RLS
-ALTER TABLE user_participation ENABLE ROW LEVEL SECURITY;
-
--- Grant access to authenticated users
-GRANT ALL ON user_participation TO authenticated;
-
--- RLS Policies
-CREATE POLICY "Enable read for users participating in board"
-    ON user_participation
-    FOR SELECT
-    USING (
-        auth.uid() = user_id
-        OR EXISTS (
-            SELECT 1 FROM user_participation up
-            WHERE up.board_id = user_participation.board_id
-            AND up.user_id = auth.uid()
-        )
-    );
-
+-- Insert policy: Users can only insert their own records
 CREATE POLICY "Enable insert for authenticated users"
-    ON user_participation
-    FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+ON user_participation
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Enable update for users own records"
-    ON user_participation
-    FOR UPDATE
-    USING (auth.uid() = user_id);
+-- Update policy: Users can only update their own records
+CREATE POLICY "Enable update for own records"
+ON user_participation
+FOR UPDATE
+USING (auth.uid() = user_id);
 
-CREATE POLICY "Enable delete for users own records"
-    ON user_participation
-    FOR DELETE
-    USING (auth.uid() = user_id);
+-- Delete policy: Users can only delete their own records
+CREATE POLICY "Enable delete for own records"
+ON user_participation
+FOR DELETE
+USING (auth.uid() = user_id);
 
--- Data validation triggers
-CREATE OR REPLACE FUNCTION validate_cursor_position()
-RETURNS TRIGGER AS $$
+-- Add function to update cursor position
+CREATE OR REPLACE FUNCTION update_user_cursor(
+  p_board_id uuid,
+  p_x integer,
+  p_y integer
+)
+RETURNS void AS $$
 BEGIN
-    IF NEW.cursor_position IS NOT NULL 
-       AND jsonb_typeof(NEW.cursor_position) != 'object' THEN
-        RAISE EXCEPTION 'cursor_position must be a JSON object';
-    END IF;
-    RETURN NEW;
+  INSERT INTO user_participation (user_id, board_id, cursor_position)
+  VALUES (
+    auth.uid(),
+    p_board_id,
+    jsonb_build_object('x', p_x, 'y', p_y)
+  )
+  ON CONFLICT (user_id, board_id)
+  DO UPDATE SET
+    cursor_position = jsonb_build_object('x', p_x, 'y', p_y),
+    updated_at = now();
 END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER ensure_valid_cursor_position
-    BEFORE INSERT OR UPDATE ON user_participation
-    FOR EACH ROW
-    EXECUTE FUNCTION validate_cursor_position();
+$$ LANGUAGE plpgsql SECURITY DEFINER;

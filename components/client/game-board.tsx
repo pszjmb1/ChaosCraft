@@ -1,18 +1,16 @@
 'use client';
 
+// components/client/game-board.tsx
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { GameBoard as GameBoardType } from '@/lib/types/game';
+import type { GameBoard as GameBoardType } from '@/lib/types/game';
+import type { GameBoardProps, UserPresence } from '@/lib/types/shared';
 import { calculateNextGeneration, createEmptyBoard } from '@/utils/game';
 import GameControls from './game-controls';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 
-interface GameBoardProps {
-  initialBoard: GameBoardType;
-}
-
-export default function GameBoard({ initialBoard }: GameBoardProps) {
+export default function GameBoard({ board: initialBoard, currentUser }: GameBoardProps) {
   // Parse dimensions from string (e.g., "10x10")
   const [width, height] = initialBoard.dimensions.split('x').map(Number);
   
@@ -22,6 +20,7 @@ export default function GameBoard({ initialBoard }: GameBoardProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [userPresence, setUserPresence] = useState<UserPresence[]>([]);
 
   const supabase = createClient();
 

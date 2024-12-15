@@ -1,7 +1,8 @@
 'use client';
 
+// components/client/game-board-wrapper.tsx
 import dynamic from 'next/dynamic';
-import { GameBoard as GameBoardType } from '@/lib/types/game';
+import type { GameBoardWrapperProps } from '@/lib/types/shared';
 
 const GameBoard = dynamic(
   () => import('./game-board'),
@@ -17,10 +18,6 @@ const GameBoard = dynamic(
   }
 );
 
-interface GameBoardWrapperProps {
-  initialBoard: GameBoardType;
-}
-
-export default function GameBoardWrapper({ initialBoard }: GameBoardWrapperProps) {
-  return <GameBoard initialBoard={initialBoard} />;
+export default function GameBoardWrapper({ initialBoard, currentUser }: GameBoardWrapperProps) {
+  return <GameBoard board={initialBoard} currentUser={currentUser} />;
 }
