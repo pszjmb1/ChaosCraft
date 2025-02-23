@@ -201,8 +201,13 @@ npm test
 - Optimised WebSocket connections
 - Efficient database queries
 
-## Bolt.new project to help with it
-- https://bolt.new/~/sb1-mmhnnpwx
+## Useful links
+- [Relatred Bol.new project](https://bolt.new/~/sb1-mmhnnpwx)
+- [Related Claude project 1](https://claude.ai/chat/9162dd18-b8d0-4abe-9acd-9a32c9ef149e)
+- [Related Claude project 2](https://claude.ai/chat/a5fc19ff-0d51-42f2-a80c-36fa78c85275)
+- [Related Claude project 3](https://claude.ai/chat/1dcacad0-2c3e-47ed-b829-b858db50994f)
+- [Claude background ideas 1](https://claude.ai/chat/809866a8-a089-41b0-befd-2bf067dfa75f)
+- [Claude background ideas 2](https://claude.ai/chat/809866a8-a089-41b0-befd-2bf067dfa75f)
 
 ## License
 
